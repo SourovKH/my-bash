@@ -1,18 +1,18 @@
 const fs = require("fs");
 
-let pWD = process.env.PWD;
+let PWD = process.env.PWD;
 
 const pwd = function() {
-  return pWD;
+  return PWD;
 }
 
 const ls = function() {
-  return fs.readdirSync(pWD);
+  return fs.readdirSync(PWD);
 }
 
 const cd = function(arg) {
-  pWD = `${pWD}/${arg}`;
-  return pWD;
+  PWD = `${PWD}/${arg}`;
+  return PWD;
 }
 
 const commands = {
@@ -23,27 +23,25 @@ const commands = {
 
 const runBash = function(args) {
   return args.map(function(arg) {
+    const command = arg[0];
+    const argument = arg[1];
 
-    if(arg.indexOf(" ") > 0) {
-      const command = arg.split(" ");
-
-      return commands[command[0]](command[1]);
-    }
-
-    return commands[arg]();
+    return commands[command](argument);
   });
 }
 
-const extractCommands = function(script) {
-  let commands = script.trim().split("\n");
+const parse = function(script) {
+  const commands = script.trim().split("\n");
 
-  return commands;
+  return commands.map(function(command) {
+    return command.split(" ");
+  });
 }
 
 const main = function() {
   const scriptFile = process.argv[2];
   const script = fs.readFileSync(`${scriptFile}`, "utf-8");
-  const commands  = extractCommands(script);
+  const commands  = parse(script);
 
   return runBash(commands).join("\n");
 }
