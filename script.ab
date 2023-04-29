@@ -1,9 +1,7 @@
 pwd
-ls
 cd /Users/sourovkrhalder/workspace/java_script/bash/workspace
-vim
-ls
+pwd
 cd personal
 pwd
-ls
+cd ..
 pwd
