@@ -1,33 +1,29 @@
 const fs = require("fs");
 
-let PWD = process.env.PWD;
-
-const pwd = function() {
-  return PWD;
+const pwd = function(environment) {
+  environment.outputs.push(environment.pwd);
+  return environment;
 }
 
-const ls = function() {
-  return fs.readdirSync(PWD);
+const ls = function(environment) {
+  const {pwd} = environment;
+  environment.outputs.push(fs.readdirSync(pwd));
+  return environment;
 }
 
-const cd = function(arg) {
-  PWD = `${PWD}/${arg}`;
-  return PWD;
+const cd = function(environment, arg) {
+  environment.pwd += `/${arg}`;
+  return environment;
 }
 
-const commands = {
-  "pwd": pwd,
-  "ls": ls,
-  "cd": cd
-}
+const commands = {pwd, ls, cd};
 
-const runBash = function(args) {
-  return args.map(function(arg) {
-    const command = arg[0];
-    const argument = arg[1];
-
-    return commands[command](argument);
-  });
+const runBash = function(args, environment) {
+  return args.reduce(function(environment, arg) {
+    const [command, argument] = arg;
+    const {outputs} = commands[command](environment, argument);
+    return environment;
+  }, environment);
 }
 
 const parse = function(script) {
@@ -42,9 +38,11 @@ const main = function() {
   const scriptFile = process.argv[2];
   const script = fs.readFileSync(`${scriptFile}`, "utf-8");
   const commands  = parse(script);
+  const pwd = process.env.PWD;
+  const environment = {pwd, outputs: []};
+  const {outputs} = runBash(commands, environment);
 
-  return runBash(commands).join("\n");
+  console.log(outputs.join("\n"));
 }
 
-
-console.log(main());
+main();
