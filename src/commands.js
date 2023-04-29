@@ -1,19 +1,20 @@
 const fs = require("fs");
 
 const pwd = function(environment) {
-  environment.outputs.push(environment.pwd);
-  return environment;
+  const {pwd} = environment;
+  return {pwd, output: [pwd]};
 }
 
 const ls = function(environment) {
   const {pwd} = environment;
-  environment.outputs.push(fs.readdirSync(pwd));
-  return environment;
+  const output = fs.readdirSync(pwd);
+  return {pwd, output: [output]};
 }
 
 const cd = function(environment, arg) {
-  environment.pwd += `/${arg}`;
-  return environment;
+  let {pwd} = environment;
+  pwd += `/${arg}`;
+  return {pwd, output: []};
 }
 
 exports.pwd = pwd;

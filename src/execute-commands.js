@@ -1,13 +1,14 @@
-const {pwd, ls, cd}= require("./commands.js");
+const commands = require("./commands.js");
 
 const execute = function(args) {
-  const commands = {pwd, ls, cd};
   let environment = {pwd: process.env.PWD, outputs: []};
 
-  for(currentCommand of args) {
+  for(const currentCommand of args) {
     const [command, argument] = currentCommand;
-    environment = commands[command](environment, argument);
-  }
+    const newEnvironment = commands[command](environment, argument);
+    environment.pwd = newEnvironment.pwd;
+    environment.outputs = environment.outputs.concat(newEnvironment.output);
+  } 
 
   return environment.outputs;
 }
