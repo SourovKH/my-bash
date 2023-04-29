@@ -13,6 +13,11 @@ const ls = function(environment) {
 
 const cd = function(environment, arg) {
   let {pwd} = environment;
+
+  if(arg.includes(pwd)) {
+    return {pwd: arg, output: []};
+  }
+
   pwd += `/${arg}`;
   return {pwd, output: []};
 }
