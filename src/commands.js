@@ -5,42 +5,66 @@ const pwd = function(environment) {
   return {pwd, output: [pwd]};
 }
 
-const ls = function(environment) {
-  const {pwd} = environment;
-  const output = fs.readdirSync(pwd).join("\t");
-  return {pwd, output: [output]};
+const hasNoArgument = function(argument) {
+  return argument.length === 0;
 }
 
-// cd arguments ==> .. , /, ../../something
+const ls = function(environment, ...argument) {
+  const {pwd} = environment;
+  let args = argument;
+
+  if(hasNoArgument(argument)) {
+    args = [pwd];
+  }
+
+  let output = args.map(function(arg) {
+    let content = fs.readdirSync(arg).join("\n   ");
+    content = `${arg}:\n   ${content}`;
+    return content;
+  });
+
+  output = output.join("\n");
+  return {pwd, output};
+}
+
+const isParentDirectory = function(directory) {
+  return directory === ".."
+}
+
+const isNotParentOrCurrentDirectory = function(directory) {
+  return directory !== ".." && directory !== "."
+}
 
 const resolvePath = function(path) {
   const newPath = [];
   const directories = path.split("/");
 
-  for(const currentDirectory of directories) {
-    if(currentDirectory === "..") {
+  for(const directory of directories) {
+    if(isParentDirectory(directory)) {
       newPath.pop();
     }
 
-    if(currentDirectory !== ".."){
-      newPath.push(currentDirectory);
+    if(isNotParentOrCurrentDirectory(directory)) {
+      newPath.push(directory);
     }
   }
 
   return newPath.join("/");
 }
 
-const cd = function(environment, arg) {
+const cd = function(environment, ...arg) {
   let {pwd} = environment;
+  const argument = arg.toString();
 
-  if(arg.startsWith("/")) {
-    return {pwd: arg, output: []};
+  if(argument.startsWith("/")) {
+    return {pwd: argument, output: []};
   }
 
-  pwd += `/${arg}`;
+  pwd += `/${argument}`;
 
   if(!fs.existsSync(pwd)) {
-    return {pwd, output: [`cd: no such file or directory: ${arg}`]};
+    pwd = environment.pwd;
+    return {pwd, output: [`cd: no such file or directory: ${argument}`]};
   }
 
   pwd = resolvePath(pwd);

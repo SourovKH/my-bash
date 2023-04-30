@@ -1,7 +1,3 @@
+ls workspace
 pwd
-cd /Users/sourovkrhalder/workspace/java_script/bash/workspace
-pwd
-cd personal
-pwd
-cd ..
-pwd
+ls
