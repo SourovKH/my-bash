@@ -5,24 +5,48 @@ const pwd = function(environment) {
   return {pwd, output: [pwd]};
 }
 
-const hasNoArgument = function(argument) {
-  return argument.length === 0;
+const resolvePath = function(pwd, path) {
+  const newPath = pwd.split("/");
+  const directories = path.split("/");
+
+  if(directories.includes("~")) {
+    directories.splice(0, 1);
+    return `${process.env.HOME}/${directories.join("/")}`;
+  }
+
+  for(const directory of directories) {
+    if(isParentDirectory(directory)) {
+      newPath.pop();
+    }
+
+    if(isNotParentOrCurrentDirectory(directory)) {
+      newPath.push(directory);
+    }
+  }
+
+  return newPath.join("/");
 }
 
 const listContents = function(path) {
+  if(path === "~") {
+    const contents = fs.readdirSync(process.env.HOME).join("\n   ");
+    return `${path}:\n   ${contents}`;
+  }
+
   if(!fs.existsSync(path)) {
     return `ls: ${path}: No such file or directory`;
   }
 
-  const content = fs.readdirSync(path).join("\n");
-  return `${path}:\n   ${content}`;
+  const contents = fs.readdirSync(path).join("\n   ");
+
+  return `${path}:\n   ${contents}`;
 }
 
 const ls = function(environment, ...paths) {
   const {pwd} = environment;
   let args = paths;
 
-  if(hasNoArgument(paths)) {
+  if(paths.length === 0) {
     args = [pwd];
   }
 
@@ -38,40 +62,24 @@ const isNotParentOrCurrentDirectory = function(directory) {
   return directory !== ".." && directory !== "."
 }
 
-const resolvePath = function(path) {
-  const newPath = [];
-  const directories = path.split("/");
+const cd = function(environment, path) {
+  const {pwd} = environment;
 
-  for(const directory of directories) {
-    if(isParentDirectory(directory)) {
-      newPath.pop();
-    }
-
-    if(isNotParentOrCurrentDirectory(directory)) {
-      newPath.push(directory);
-    }
+  if(path === undefined) {
+    return {pwd: process.env.HOME, output: []};
   }
 
-  return newPath.join("/");
-}
+  const potentialPWD = resolvePath(pwd, path);
 
-const cd = function(environment, argument) {
-  let {pwd} = environment;
-
-  if(argument.startsWith("/")) {
-    return {pwd: argument, output: []};
+  if(path.startsWith("/") && fs.existsSync(potentialPWD)) {
+    return {pwd: potentialPWD, output: []};
   }
 
-  pwd += `/${argument}`;
-
-  if(!fs.existsSync(pwd)) {
-    pwd = environment.pwd;
-    return {pwd, output: [`cd: no such file or directory: ${argument}`]};
+  if(!fs.existsSync(potentialPWD)) {
+    return {pwd: environment.pwd, output: [`cd: No such file or directory: ${path}`]};
   }
 
-  pwd = resolvePath(pwd);
-
-  return {pwd, output: []};
+  return {pwd: potentialPWD, output: []};
 }
 
 exports.pwd = pwd;

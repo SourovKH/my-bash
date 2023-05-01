@@ -1,3 +1,8 @@
-ls workspace
+ls
+cd workspace
 pwd
-ls workspace nothing
+ls
+pwd
+cd ~
+pwd
+ls ~

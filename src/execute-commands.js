@@ -12,7 +12,7 @@ const execute = function(commandList) {
 
     if(isValidCommand(commandName)) {
       const commandToExecute = commands[commandName];
-      const {pwd, output}= commandToExecute(environment, ...argument);
+      const {pwd, output} = commandToExecute(environment, ...argument);
       const outputs = environment.outputs.concat(output);
 
       return {pwd, outputs};
