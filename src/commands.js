@@ -9,21 +9,24 @@ const hasNoArgument = function(argument) {
   return argument.length === 0;
 }
 
-const ls = function(environment, ...argument) {
-  const {pwd} = environment;
-  let args = argument;
+const listContents = function(path) {
+  if(!fs.existsSync(path)) {
+    return `ls: ${path}: No such file or directory`;
+  }
 
-  if(hasNoArgument(argument)) {
+  const content = fs.readdirSync(path).join("\n");
+  return `${path}:\n   ${content}`;
+}
+
+const ls = function(environment, ...paths) {
+  const {pwd} = environment;
+  let args = paths;
+
+  if(hasNoArgument(paths)) {
     args = [pwd];
   }
 
-  let output = args.map(function(arg) {
-    let content = fs.readdirSync(arg).join("\n   ");
-    content = `${arg}:\n   ${content}`;
-    return content;
-  });
-
-  output = output.join("\n");
+  const output = args.map(listContents).join("\n");
   return {pwd, output};
 }
 
@@ -52,9 +55,8 @@ const resolvePath = function(path) {
   return newPath.join("/");
 }
 
-const cd = function(environment, ...arg) {
+const cd = function(environment, argument) {
   let {pwd} = environment;
-  const argument = arg.toString();
 
   if(argument.startsWith("/")) {
     return {pwd: argument, output: []};
